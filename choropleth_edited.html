@@ -79,6 +79,7 @@ var tip = d3.tip().attr('class', 'd3-tip').offset([10,10]) // create a tip where
 		"<strong style='color:lightblue'>sadness_intensity : </strong><span style='color:white'>" + d.properties.sadness_intensity +"</span><br>" +
 		"<strong style='color:lightblue'>joy_intensity: </strong><span style='color:white'>" + d.properties.joy_intensity + "</span><br>"
 		})  
+		
 var world = [] // for mapping
 var game_data = [] //rename to {key: "country", value: {anger_intensity: 0.428, valence_intensity: 0.569, fear_intensity: 0.329, sadness_intensity: 0.334, joy_intensity: 0.381}
 var game_arr = ['valence_intensity','anger_intensity','fear_intensity','sadness_intensity','joy_intensity']
