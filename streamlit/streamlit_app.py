@@ -19,7 +19,7 @@ In the meantime, below is an example of what you can do with just a few lines of
 
 country_shapes = 'world_countries.json'
 
-df = pd.read_csv ('rand_data.csv')
+df = pd.read_csv ('streamlit/rand_data.csv')
 df.dropna()
 st.dataframe(df)
 
