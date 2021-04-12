@@ -17,7 +17,7 @@ forums](https://discuss.streamlit.io).
 In the meantime, below is an example of what you can do with just a few lines of code:
 """
 
-country_shapes = 'world_countries.json'
+country_shapes = 'streamlit/world_countries.json'
 
 df = pd.read_csv ('streamlit/rand_data.csv')
 df.dropna()
