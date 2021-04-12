@@ -5,57 +5,108 @@ import pandas as pd
 import streamlit as st
 import folium
 from streamlit_folium import folium_static
+import calendar
+
+st.set_page_config(layout = 'wide')
 
 """
-# Welcome to !
+# Welcome to Covid-19 dashboard!
 
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:
-
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
-
-In the meantime, below is an example of what you can do with just a few lines of code:
 """
+
+
+
+# #option for side bar in stead of drop down
+# st.sidebar.markdown("## Select Month and Sentiment Metric")
+#
+# selected_month = st.sidebar.slider("Month of the year", 1, 12, 1)
+# option = st.sidebar.selectbox('Select Sentiment',
+#                       ('valence_intensity','anger_intensity','fear_intensity','sadness_intensity','joy_intensity'))
+#
+
+
+my_expander = st.beta_expander('Select Month and Sentiment Metric')
+with my_expander:
+    selected_month = st.slider("Month of the year", 1, 12, 1)
+    option = st.selectbox('Select Sentiment',
+                          ('valence_intensity','anger_intensity','fear_intensity','sadness_intensity','joy_intensity'))
+
+
+
+
+
+
+c1, c2, c3 = st.beta_columns((3, 0.5, 3))
+
 
 country_shapes = 'streamlit/world_countries.json'
 
-df = pd.read_csv ('streamlit/rand_data.csv')
+df = pd.read_csv ('clean-data/date_country_sentiment_cases_predictions.csv')
 df.dropna()
-st.dataframe(df)
+#st.dataframe(df)
+df['date'] = pd.to_datetime(df['date'])
 
-m = folium.Map(tiles='Stamen Terrain',min_zoom=1.5)
+filtered_df = df[df['date'].dt.month == selected_month]
+#st.dataframe(filtered_df)
+
+
+c1.header('COVID-19 cumulative confirmed cases rate for ' + calendar.month_name[selected_month] + ' 2020')
+m = folium.Map(tiles='OpenStreetMap', min_zoom=1.5,  width='80%', height='80%', )
 folium.Choropleth(
 geo_data=country_shapes,
-min_zoom=0.1,
-data=df,
-columns=['country','data'],
+min_zoom=1,
+data=filtered_df,
+columns=['country','cumulative_confirmed_cases_rate'],
 key_on='feature.properties.name',
 fill_color='YlOrRd',
-nan_fill_color='black',
-legend_name='Total Confirmed Cases'
+nan_fill_color='grey',
+legend_name='cumulative_confirmed_cases_rate',
+titles = 'map'
 ).add_to(m)
-
-folium_static(m)
-
-
+with c1:
+    folium_static(m)
 
 
-total_points = st.slider("Number of points in spiral", 1, 5000, 2000)
-num_turns = st.slider("Number of turns in spiral", 1, 100, 9)
+c3.header(' '.join(option.split('_')) + ' for ' + calendar.month_name[selected_month] + ' 2020' )
+m2 = folium.Map(tiles='OpenStreetMap', min_zoom=1.5,  width='80%', height='80%', )
+folium.Choropleth(
+geo_data=country_shapes,
+min_zoom=1,
+data=filtered_df,
+columns=['country',option],
+key_on='feature.properties.name',
+fill_color='YlOrRd',
+nan_fill_color='grey',
+legend_name=' '.join(option.split('_')),
+titles = 'map'
+).add_to(m2)
+with c3:
+    folium_static(m2)
 
-Point = namedtuple('Point', 'x y')
-data = []
+daily_df = (filtered_df.groupby('date', as_index=False)
+       .agg({'predicted_cumulative_confirmed_cases_rate':'mean',
+             'upper_cumulative_confirmed_cases_rate':'mean',
+             'lower_cumulative_confirmed_cases_rate':'mean'})
+       .rename(columns={'predicted_cumulative_confirmed_cases_rate':'predicted',
+                        'upper_cumulative_confirmed_cases_rate':'upper',
+                        'lower_cumulative_confirmed_cases_rate':'lower'}))
 
-points_per_turn = total_points / num_turns
+st.header('Predicted total COVID case rate for ' + calendar.month_name[selected_month] + ' 2020')
+#line chart
+line = alt.Chart(daily_df).mark_line().encode(
+    x='date',
+    y='predicted'
+).properties(
+    width=1000,
+    height=300
+)
 
-for curr_point_num in range(total_points):
-    curr_turn, i = divmod(curr_point_num, points_per_turn)
-    angle = (curr_turn + 1) * 2 * math.pi * i / points_per_turn
-    radius = curr_point_num / total_points
-    x = radius * math.cos(angle)
-    y = radius * math.sin(angle)
-    data.append(Point(x, y))
+band = alt.Chart(daily_df).mark_area(
+    opacity=0.5
+).encode(
+    x='date',
+    y='lower',
+    y2='upper'
+)
 
-st.altair_chart(alt.Chart(pd.DataFrame(data), height=500, width=500)
-    .mark_circle(color='#0068c9', opacity=0.5)
-    .encode(x='x:Q', y='y:Q'))
+band + line
