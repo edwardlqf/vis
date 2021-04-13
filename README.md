@@ -10,4 +10,4 @@ Useful streamlit links:
 https://awesome-streamlit.org (To see examples: navigation -> gallery -> Select the App)
 
 Live Streamlit Link:
-TBD waiting for repo to be public.
+https://share.streamlit.io/edwardlqf/vis/main/streamlit/streamlit_app.py
