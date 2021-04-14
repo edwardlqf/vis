@@ -47,7 +47,6 @@ df.dropna()
 df['date'] = pd.to_datetime(df['date'])
 filtered_df = df[df['date'].dt.month == selected_month]
 
-
 c1.header('COVID-19 cumulative confirmed cases rate for ' + calendar.month_name[selected_month] + ' 2020')
 m = folium.Map(tiles='OpenStreetMap', min_zoom=1,  width='100%', height='80%', )
 folium.Choropleth(
@@ -63,7 +62,14 @@ titles = 'map'
 ).add_to(m)
 with c1:
     folium_static(m)
+c1.text('COVID data from: https://console.cloud.google.com/bigquery?project=covid-305420&supportedpurview=project&p=bigquery-public-data&page=table&d=covid19_ecdc&t=covid_19_geographic_distribution_worldwide')
+c1.text('\n')
 
+
+df = pd.read_csv ('clean-data/date_country_sentiment_cases_predictions.csv')
+df.dropna()
+df['date'] = pd.to_datetime(df['date'])
+filtered_df = df[df['date'].dt.month == selected_month]
 
 c3.header(' '.join(option.split('_')) + ' for ' + calendar.month_name[selected_month] + ' 2020' )
 m2 = folium.Map(tiles='OpenStreetMap', min_zoom=1,  width='100%', height='80%', )
@@ -81,6 +87,8 @@ titles = 'map'
 with c3:
     folium_static(m2)
 
+c3.text('Sentiment data from: https://www.openicpsr.org/openicpsr/project/120321/version/V6/view?path=/openicpsr/120321/fcr:versions/V6/Twitter-COVID-dataset---Jan-2021')
+c3.text('\n')
 
 daily_df = (filtered_df.groupby('date', as_index=False)
        .agg({'predicted_cumulative_confirmed_cases_rate':'mean',
