@@ -1,12 +1,10 @@
 from collections import namedtuple
 import altair as alt
-import math
 import pandas as pd
 import streamlit as st
 import folium
 from streamlit_folium import folium_static
 import calendar
-import time
 
 st.set_page_config(layout = 'wide')
 
@@ -14,8 +12,6 @@ st.set_page_config(layout = 'wide')
 # Welcome to Covid-19 dashboard!
 
 """
-
-
 
 # #option for side bar in stead of drop down
 # st.sidebar.markdown("## Select Month and Sentiment Metric")
@@ -37,7 +33,7 @@ c1, c2, c3 = st.beta_columns((3, 0.4, 3))
 
 selected_month = c1.slider("Month of the year", 1, 12, 12, 1)
 
-option = c3.selectbox('Select Sentiment',
+option = c3.selectbox('Select Sentiment Here',
                       ('Valence Intensity','Anger Intensity','Fear Intensity','Sadness Intensity','Joy Intensity'))
 
 
@@ -70,7 +66,7 @@ for i, name in enumerate(json1_data['features']):
 #      json.dump(data, outfile)
 
 
-c1.header('Cumulative cases rate for ' + calendar.month_name[selected_month] + ' 2020')
+c1.header('Cumulative cases rate for ' + calendar.month_name[selected_month] + ' 2020. (With tooltips!)')
 m = folium.Map(tiles='OpenStreetMap', min_zoom=1,  width='100%', height='80%', )
 choropleth = folium.Choropleth(
             geo_data=json1_data,
@@ -93,10 +89,6 @@ choropleth.geojson.add_child(
 
 with c1:
     folium_static(m)
-c1.text('COVID data from: https://console.cloud.google.com/bigquery?project=covid-305420&supportedpurview=project&p=bigquery-public-data&page=table&d=covid19_ecdc&t=covid_19_geographic_distribution_worldwide')
-c1.text('\n')
-
-
 
 
 df = pd.read_csv ('clean-data/date_country_sentiment_cases_predictions.csv')
@@ -134,12 +126,9 @@ titles = 'map'
 # choropleth2.geojson.add_child(
 #     folium.features.GeoJsonTooltip(['tooltip2'], labels=False)
 # )
-
 with c3:
     folium_static(m2)
 
-c3.text('Sentiment data from: https://www.openicpsr.org/openicpsr/project/120321/version/V6/view?path=/openicpsr/120321/fcr:versions/V6/Twitter-COVID-dataset---Jan-2021')
-c3.text('\n')
 
 daily_df = (filtered_df.groupby('date', as_index=False)
        .agg({'predicted_cumulative_confirmed_cases_rate':'mean',
@@ -173,3 +162,20 @@ band = alt.Chart(daily_df).mark_area(
 )
 
 band + line
+
+
+st.markdown("""<h4 style='text-align: center'>A simple moving average model of the past 10 days. 
+If there are less than 10 days, then all available days are used. 
+Then a gradient boosting model was used on the simple moving average (SMA) regression model. 
+The advantage of this model is that it is ensemble-based and that it reduces bias and overfitting.</h4>""", unsafe_allow_html=True)
+
+st.markdown("""<h4 style='text-align: center'> Used 100 estimators to reduce prediction variance and set the max depth of each tree to 5
+to prevent overfitting. Using the collection of data for the past 10 days, the model was built by
+training it on 85% of the data and using the other 15% of the data for testing to determine the quality of
+the prediction. Then two additional models were trained to create confidence interval bands at the 15th
+and 85th percentile to fit a 70% confidence interval band.</h4>""", unsafe_allow_html=True)
+
+
+
+st.markdown('*Sentiment data from: https://www.openicpsr.org/openicpsr/project/120321/version/V6/view?path=/openicpsr/120321/fcr:versions/V6/Twitter-COVID-dataset---Jan-2021*')
+st.markdown('*COVID data from: https://console.cloud.google.com/bigquery?project=covid-305420&supportedpurview=project&p=bigquery-public-data&page=table&d=covid19_ecdc&t=covid_19_geographic_distribution_worldwide*')
