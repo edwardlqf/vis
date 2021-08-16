@@ -29,7 +29,7 @@ st.set_page_config(layout = 'wide')
 #                           ('valence_intensity','anger_intensity','fear_intensity','sadness_intensity','joy_intensity'))
 
 
-c1, c2, c3 = st.beta_columns((3, 0.4, 3))
+c1, c2, c3 = st.columns((3, 0.4, 3))
 
 selected_month = c1.slider("Month of the year", 1, 12, 12, 1)
 
